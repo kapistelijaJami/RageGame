@@ -1,12 +1,17 @@
-package ragegame;
+package ragegame.objects;
 
+import ragegame.Rect;
 import java.awt.Color;
 import java.awt.Graphics;
 
-public class Wall extends Rect{
+public class Wall extends Rect {
 	
 	public Wall(int x, int y, int width, int height) {
 		super(x, y, width, height);
+	}
+	
+	public void update() {
+		
 	}
 	
 	public void render(Graphics g) {

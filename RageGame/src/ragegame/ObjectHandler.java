@@ -1,5 +1,6 @@
 package ragegame;
 
+import ragegame.objects.Wall;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
@@ -19,7 +20,9 @@ public class ObjectHandler {
 	}
 	
 	public void update() {
-		
+		for (Wall wall : lista) {
+			wall.update();
+		}
 	}
 	
 	public void render(Graphics g) {

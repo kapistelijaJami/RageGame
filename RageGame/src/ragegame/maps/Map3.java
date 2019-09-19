@@ -8,14 +8,15 @@ import ragegame.Rect;
 import ragegame.TrapHandler;
 import ragegame.objects.Wall;
 import ragegame.traps.Spikes;
+import ragegame.traps.Trampoline;
 
-public class Map2 extends Map {
+public class Map3 extends Map {
 	private TrapHandler trapHandler;
 	private Rect goal;
 	private int playerStartX;
 	private int playerStartY;
 	
-	public Map2(RageGame peli) {
+	public Map3(RageGame peli) {
 		this.peli = peli;
 		
 		init();
@@ -26,23 +27,27 @@ public class Map2 extends Map {
 		this.trapHandler = new TrapHandler();
 		
 		//Platforms
-		this.objectHandler.add(new Wall(52, 500, 16, 20));
-		this.objectHandler.add(new Wall(200, 460, 16, 20));
-		this.objectHandler.add(new Wall(400, 550, 16, 20));
-		this.objectHandler.add(new Wall(550, 400, 16, 20));
-		this.objectHandler.add(new Wall(350, 300, 16, 20));
-		this.objectHandler.add(new Wall(600, 200, 16, 20));
-		
+		this.objectHandler.add(new Wall(50, 500, 900, 50));
 		
 		//Walls
-		this.objectHandler.add(new Wall(300, 50, 50, 437));
-		this.objectHandler.add(new Wall(800, 150, 40, 437));
+		this.objectHandler.add(new Wall(500, 45, 150, 295));
+		this.objectHandler.add(new Wall(500, 360, 150, 150));
 		
+		//Spikes
+		Spikes spikes = new Spikes(500, 300, 20, 20, 3, true, peli);
+		spikes.setTriggerTrapRect(new Rect(500 - 5, 300, 20, 20));
+		this.trapHandler.add(spikes);
 		
-		this.goal = new Rect(900, 500, 50, 50);
+		spikes = new Spikes(500, 380, 20, 20, 3, true, peli);
+		spikes.setTriggerTrapRect(new Rect(500 - 5, 380, 20, 20));
+		this.trapHandler.add(spikes);
 		
-		playerStartX = 50;
-		playerStartY = 300;
+		this.trapHandler.add(new Trampoline(900, 500, 50, 5, 0, 10, true, peli));
+		
+		this.goal = new Rect(920, 53, 50, 50);
+		
+		playerStartX = 100;
+		playerStartY = 100;
 	}
 
 	@Override
@@ -69,7 +74,7 @@ public class Map2 extends Map {
 	public int getPlayerStartY() {
 		return playerStartY;
 	}
-	
+
 	@Override
 	public void reset() {
 		init();

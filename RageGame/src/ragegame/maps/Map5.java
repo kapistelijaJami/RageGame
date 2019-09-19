@@ -6,16 +6,20 @@ import ragegame.ObjectHandler;
 import ragegame.RageGame;
 import ragegame.Rect;
 import ragegame.TrapHandler;
+import ragegame.objects.DiagonalWall;
+import ragegame.objects.MovingWall;
 import ragegame.objects.Wall;
 import ragegame.traps.Spikes;
+import ragegame.traps.SpikesDiagonal;
+import ragegame.traps.Trampoline;
 
-public class Map2 extends Map {
+public class Map5 extends Map {
 	private TrapHandler trapHandler;
 	private Rect goal;
 	private int playerStartX;
 	private int playerStartY;
 	
-	public Map2(RageGame peli) {
+	public Map5(RageGame peli) {
 		this.peli = peli;
 		
 		init();
@@ -26,27 +30,28 @@ public class Map2 extends Map {
 		this.trapHandler = new TrapHandler();
 		
 		//Platforms
-		this.objectHandler.add(new Wall(52, 500, 16, 20));
-		this.objectHandler.add(new Wall(200, 460, 16, 20));
-		this.objectHandler.add(new Wall(400, 550, 16, 20));
-		this.objectHandler.add(new Wall(550, 400, 16, 20));
-		this.objectHandler.add(new Wall(350, 300, 16, 20));
-		this.objectHandler.add(new Wall(600, 200, 16, 20));
+		this.objectHandler.add(new DiagonalWall(100, 400, 500, 30, -45));
+		this.objectHandler.add(new DiagonalWall(100, 250, 500, 30, -45));
+		
+		this.objectHandler.add(new Wall(70, 600, 50, 30));
 		
 		
 		//Walls
-		this.objectHandler.add(new Wall(300, 50, 50, 437));
-		this.objectHandler.add(new Wall(800, 150, 40, 437));
+		this.objectHandler.add(new Wall(150, 40, 30, 400));
 		
 		
-		this.goal = new Rect(900, 500, 50, 50);
+		this.trapHandler.add(new SpikesDiagonal(106, 267, 500, 10, 2, -45, true, peli));
 		
-		playerStartX = 50;
-		playerStartY = 300;
+		this.goal = new Rect(700, 100, 50, 50);
+		
+		playerStartX = 90;
+		playerStartY = 400;
+		
 	}
 
 	@Override
 	public void update() {
+		this.objectHandler.update();
 		this.trapHandler.update();
 		if (peli.intersectsWithPlayer(goal)) {
 			peli.win();
@@ -69,7 +74,7 @@ public class Map2 extends Map {
 	public int getPlayerStartY() {
 		return playerStartY;
 	}
-	
+
 	@Override
 	public void reset() {
 		init();

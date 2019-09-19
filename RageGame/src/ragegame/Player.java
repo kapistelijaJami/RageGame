@@ -1,11 +1,14 @@
 package ragegame;
 
+import ragegame.objects.Wall;
 import java.awt.Color;
 import java.awt.Graphics;
+import ragegame.objects.DiagonalWall;
+import ragegame.objects.SpinningWall;
 
 public class Player extends Rect {
-	private double nopeusY;
-	private double nopeusX;
+	private double speedY;
+	private double speedX;
 	private RageGame peli;
 	
 	private boolean lastDirectionLeft;
@@ -17,32 +20,38 @@ public class Player extends Rect {
 	private boolean dead = false;
 	
 	private final double maxSpeed = 20;
+	private double lastSpeedY;
+	private double lastSpeedX;
 	
 	public Player(int x, int y, int width, int height, RageGame peli) {
 		super(x, y, width, height);
 		
 		this.peli = peli;
-		nopeusY = 0;
-		nopeusX = 0;
+		speedY = 0;
+		speedX = 0;
+		lastSpeedY = 0;
+		lastSpeedX = 0;
 		lastDirectionLeft = false;
 		isPressedA = false;
 		isPressedD = false;
 	}
 
-	public double getNopeusY() {
-		return nopeusY;
+	public double getSpeedY() {
+		return speedY;
 	}
 
-	public void setNopeusY(double nopeusY) {
-		this.nopeusY = nopeusY;
+	public void setSpeedY(double speedY) {
+		this.lastSpeedY = this.speedY;
+		this.speedY = speedY;
 	}
 
-	public double getNopeusX() {
-		return nopeusX;
+	public double getSpeedX() {
+		return speedX;
 	}
 
-	public void setNopeusX(double nopeusX) {
-		this.nopeusX = nopeusX;
+	public void setSpeedX(double speedX) {
+		this.lastSpeedX = this.speedX;
+		this.speedX = speedX;
 	}
 	
 	public void setIsPressedA(boolean isPressedA) {
@@ -71,11 +80,27 @@ public class Player extends Rect {
 		this.isSmall = isSmall;
 	}
 	
+	public void setJumped(boolean jumped) {
+		this.jumped = jumped;
+	}
+	
+	public double getMaxSpeed() {
+		return maxSpeed;
+	}
+	
+	public double getLastSpeedX() {
+		return lastSpeedX;
+	}
+	
+	public double getLastSpeedY() {
+		return lastSpeedY;
+	}
 	
 	
 	public void update() {
 		
-		updateNopeus();
+		updateSpeed();
+		
 		updateMoveX();
 		collisionX();
 		updateMoveY();
@@ -112,42 +137,74 @@ public class Player extends Rect {
 		
 		Rect top = getTopHitbox();
 		g.drawRect(top.x, top.y, top.width, top.height);
+		
 		Rect right = getRightHitbox();
 		g.drawRect(right.x, right.y, right.width, right.height);
+		
 		Rect bottom = getBottomHitbox();
 		g.drawRect(bottom.x, bottom.y, bottom.width, bottom.height);
+		
 		Rect left = getLeftHitbox();
 		g.drawRect(left.x, left.y, left.width, left.height);
 	}
 	
 	public void collisionX() {
-		if (nopeusX < 0) {
+		if (speedX < 0) {
 			Wall wall = peli.intersectsWithWall(getLeftHitbox()); //LEFT
 			if (wall != null) {
-				setX(wall.getX() + wall.getWidth());
-				setNopeusX(0);
+				if (wall instanceof DiagonalWall) {
+					while (wall.intersects(getLeftHitbox())) {
+						x++;
+					}
+				} else {
+					setX(wall.getX() + wall.getWidth());
+				}
+				setSpeedX(0);
 			}
-		} else if (nopeusX > 0) {
+		} else if (speedX > 0) {
 			Wall wall = peli.intersectsWithWall(getRightHitbox()); //RIGHT
 			if (wall != null) {
-				setX(wall.getX() - width);
-				setNopeusX(0);
+				if (wall instanceof DiagonalWall) {
+					while (wall.intersects(getRightHitbox())) {
+						x--;
+					}
+				} else {
+					setX(wall.getX() - width);
+				}
+				setSpeedX(0);
 			}
 		}
 	}
 	
 	public void collisionY() {
-		if (nopeusY < 0) {
+		if (speedY < 0) {
 			Wall wall = peli.intersectsWithWall(getTopHitbox()); //TOP
 			if (wall != null) {
-				setY(wall.getY() + wall.getHeight());
-				setNopeusY(0);
+				if (wall instanceof DiagonalWall) {
+					while (wall.intersects(getTopHitbox())) {
+						y++;
+					}
+				} else {
+					if (isSmall) {
+						setY(wall.getY() + wall.getHeight() - height / 2);
+					} else {
+						setY(wall.getY() + wall.getHeight());
+					}
+				}
+				setSpeedY(0);
+				
 			}
-		} else if (nopeusY > 0)  {
+		} else if (speedY > 0)  {
 			Wall wall = peli.intersectsWithWall(getBottomHitbox()); //BOTTOM
 			if (wall != null) {
-				setY(wall.getY() - height);
-				setNopeusY(0);
+				if (wall instanceof DiagonalWall) {
+					while (wall.intersects(getBottomHitbox())) {
+						y--;
+					}
+				} else {
+					setY(wall.getY() - height);
+				}
+				setSpeedY(0);
 				jumped = false;
 			}
 		}
@@ -185,37 +242,45 @@ public class Player extends Rect {
 		return new Rect(x + width - 5, locY, 5, locHeight);
 	}
 	
-	public void updateNopeus() {
+	public void updateSpeed() {
 		if (lastDirectionLeft && isPressedA) {
-			nopeusX = Math.max(nopeusX - 1, -5);
+			speedX = Math.min(speedX, Math.max(speedX - 1, -5));
 		} else if (!lastDirectionLeft && isPressedD) {
-			nopeusX = Math.min(nopeusX + 1, 5);
+			speedX = Math.max(speedX, Math.min(speedX + 1, 5));
 		}
 	}
 	
 	public void updateMoveX() {
-		x += nopeusX;
+		x += speedX;
 	}
 	
 	public void updateMoveY() {
-		y += nopeusY;
+		y += speedY;
 	}
 	
 	public void updateGravityAndMomentum() {
-		nopeusY = Math.min(nopeusY + 0.3, maxSpeed);
+		speedY = Math.min(speedY + 0.3, maxSpeed);
 		
 		if (!isPressedA && !isPressedD) { //kumpaakaan ei paineta
-			if (nopeusX > 0) {
-				nopeusX = Math.max(nopeusX - 0.6, 0);
-			} else if (nopeusX < 0) {
-				nopeusX = Math.min(nopeusX + 0.6, 0);
+			if (Math.abs(speedX) >= 7) {
+				if (speedX > 0) {
+					speedX = Math.max(speedX - 0.2, 0); //def: 0.6
+				} else if (speedX < 0) {
+					speedX = Math.min(speedX + 0.2, 0);
+				}
+			} else {
+				if (speedX > 0) {
+					speedX = Math.max(speedX - 0.6, 0); //def: 0.6
+				} else if (speedX < 0) {
+					speedX = Math.min(speedX + 0.6, 0);
+				}
 			}
 		}
 	}
 	
 	public void jump() {
 		if (!jumped) {
-			this.setNopeusY(-10);
+			this.setSpeedY(-10);
 		}
 		jumped = true;
 	}
@@ -231,8 +296,10 @@ public class Player extends Rect {
 	}
 
 	public void reset() {
-		nopeusY = 0;
-		nopeusX = 0;
+		speedY = 0;
+		speedX = 0;
+		lastSpeedY = 0;
+		lastSpeedX = 0;
 
 		lastDirectionLeft = false;
 		isPressedA = false;

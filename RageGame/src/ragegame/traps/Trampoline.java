@@ -2,20 +2,21 @@ package ragegame.traps;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import ragegame.Player;
 import ragegame.RageGame;
 import ragegame.Rect;
 
-public class Spikes extends Trap {
+public class Trampoline extends Trap {
 	private int direction; //0, 1, 2, 3; up, right, down, left
 	private Rect triggerTrapRect;
 	private Rect armTrapRect;
-	private boolean fired = false;
-	//maybe add timer for the trap
-	
-	public Spikes(int x, int y, int width, int height, int direction, boolean armed, RageGame peli) {
+	private double speed;
+
+	public Trampoline(int x, int y, int width, int height, int direction, double speed, boolean armed, RageGame peli) {
 		super(x, y, width, height, armed, peli);
 		
 		this.direction = direction;
+		this.speed = speed;
 		
 		switch(direction) {
 			case 0:
@@ -32,53 +33,45 @@ public class Spikes extends Trap {
 				break;
 		}
 	}
-	
-	public void setArmTrapRect(Rect armTrapRect) {
-		this.armTrapRect = armTrapRect;
-	}
-	
-	public void setTriggerTrapRect(Rect trigger) {
-		this.triggerTrapRect = trigger;
-	}
-	
-	
+
 	@Override
 	public void armTrap() {
-		this.armed = true;
+		
 	}
-	
+
 	@Override
 	public void fire() {
 		if (this.armed) {
+			Player player = peli.getPlayer();
+			double playerNopeusY = Math.abs(player.getSpeedY()) > Math.abs(player.getLastSpeedY()) ? player.getSpeedY() : player.getLastSpeedY();
+			double playerNopeusX = Math.abs(player.getSpeedX()) > Math.abs(player.getLastSpeedX()) ? player.getSpeedX() : player.getLastSpeedX();
+			
+			double newSpeedY = Math.abs(playerNopeusY) / (player.getMaxSpeed() / 2) * speed;
+			double newSpeedX = Math.abs(playerNopeusX) / (player.getMaxSpeed() / 4) * speed;
+			
 			switch(direction) {
 				case 0:
-					y -= height;
+					player.setSpeedY(Math.min(Math.max(-newSpeedY, -speed), -speed / 2));
+					player.setJumped(false);
 					break;
 				case 1:
-					x += width;
+					player.setSpeedX(Math.max(Math.min(newSpeedX, speed), speed / 2));
 					break;
 				case 2:
-					y += height;
+					player.setSpeedY(Math.max(Math.min(newSpeedY, speed), speed / 2));
 					break;
 				case 3:
-					x -= width;
+					player.setSpeedX(Math.min(Math.max(-newSpeedX, -speed), -speed / 2));
 					break;
 			}
 		}
 		
-		fired = true;
 	}
 
 	@Override
 	public void render(Graphics g) {
-		g.setColor(Color.RED);
+		g.setColor(Color.ORANGE);
 		g.fillRect(x, y, width, height);
-		
-		/*g.setColor(Color.GREEN); //render trigger
-		g.drawRect(triggerTrapRect.getX(), triggerTrapRect.getY(), triggerTrapRect.getWidth(), triggerTrapRect.getHeight());
-		
-		g.setColor(Color.GREEN); //render armTrap
-		g.drawRect(armTrapRect.getX(), armTrapRect.getY(), armTrapRect.getWidth(), armTrapRect.getHeight());*/
 	}
 
 	@Override
@@ -87,9 +80,8 @@ public class Spikes extends Trap {
 			armTrap();
 		}
 		
-		if (armed && peli.intersectsWithPlayer(triggerTrapRect) && !fired) {
+		if (armed && peli.intersectsWithPlayer(triggerTrapRect)) {
 			fire();
-			peli.killPlayer();
 		}
 	}
 }

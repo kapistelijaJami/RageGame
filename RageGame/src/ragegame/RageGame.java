@@ -1,9 +1,13 @@
 package ragegame;
 
+import ragegame.objects.Wall;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
@@ -11,12 +15,18 @@ import javax.swing.JFrame;
 import ragegame.maps.Map;
 import ragegame.maps.Map1;
 import ragegame.maps.Map2;
+import ragegame.maps.Map3;
+import ragegame.maps.Map4;
+import ragegame.maps.Map5;
+import ragegame.maps.Map6;
 
 public class RageGame extends Canvas implements Runnable {
 	
 	public static final int WIDTH = 1000;
 	public static final int HEIGHT = 700;
 	public static final double updatesPerSecond = 60.0;
+	
+	public int counter = 0;
 	
 	public boolean running = false;
 	public Thread thread;
@@ -27,6 +37,10 @@ public class RageGame extends Canvas implements Runnable {
 	
 	private ArrayList<Map> mapList;
 	private Map currentMap;
+	
+	private int deaths = 0;
+	private boolean killPlayer = false;
+	private int killPlayerCounter = 0;
 	
 	public void createWindow() {
 		Window window = new Window(WIDTH, HEIGHT, "RageGame", this);
@@ -61,6 +75,10 @@ public class RageGame extends Canvas implements Runnable {
 		
 		mapList.add(new Map1(this));
 		mapList.add(new Map2(this));
+		mapList.add(new Map3(this));
+		mapList.add(new Map4(this));
+		mapList.add(new Map5(this));
+		mapList.add(new Map6(this));
 		
 		currentMap = mapList.get(0); //starting map
 		player.setX(currentMap.getPlayerStartX());
@@ -113,7 +131,16 @@ public class RageGame extends Canvas implements Runnable {
 	
 	public void update() {
 		player.update();
+		render();
 		currentMap.update();
+		
+		if (killPlayer && killPlayerCounter > 10) {
+			killPlayerCounter = 0;
+			killPlayer = false;
+			restartLevel();
+		} else if (killPlayer) {
+			killPlayerCounter++;
+		}
 	}
 	
 	public void render() {
@@ -131,6 +158,14 @@ public class RageGame extends Canvas implements Runnable {
 		player.render(g);
 		currentMap.render(g);
 		
+		g.setColor(Color.MAGENTA);
+		Graphics2D g2d = (Graphics2D) g;
+		
+		
+		/*g2d.rotate(Math.toRadians(-counter), 150, 150);
+		g2d.fillRect(100, 100, 100, 100);
+		counter += 10;*/
+		
 		g.dispose();
         bs.show();
 	}
@@ -145,12 +180,25 @@ public class RageGame extends Canvas implements Runnable {
 		return null;
 	}
 	
+	public Wall intersectsWithWall(Rect comp, Rect comp2) {
+		for (Wall wall : currentMap.getObjectHandler().getList()) {
+			if (wall.intersects(comp) && wall.intersects(comp2)) {
+				return wall;
+			}
+		}
+		
+		return null;
+	}
+	
 	public boolean intersectsWithPlayer(Rect comp) {
 		return player.intersects(comp);
 	}
 
 	public void killPlayer() {
 		player.kill();
+		deaths++;
+		killPlayer = true;
+		System.out.println(deaths);
 	}
 
 	public void win() {
@@ -183,4 +231,14 @@ public class RageGame extends Canvas implements Runnable {
 		
 		currentMap.reset();
 	}
+	
+	public Player getPlayer() {
+		return player;
+	}
+	
+	public static boolean shapeIntersects(Shape shapeA, Shape shapeB) {
+        Area areaA = new Area(shapeA);
+        areaA.intersect(new Area(shapeB));
+        return !areaA.isEmpty();
+    }
 }
