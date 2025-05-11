@@ -129,7 +129,7 @@ public class Player extends Rect {
 		
 		g.fillRect(x, locY, width, locHeight);
 		
-		//renderHitboxes(g);
+		renderHitboxes(g);
 	}
 	
 	public void renderHitboxes(Graphics g) {
